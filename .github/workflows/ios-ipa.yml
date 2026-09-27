@@ -1,0 +1,34 @@
+name: Build unsigned iPhone IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/ios-ipa]
+    paths:
+      - '.github/workflows/ios-ipa.yml'
+      - 'scripts/build_ios_ipa.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Check Swift navigation core
+        run: swift test --package-path platforms/ios
+      - name: Build and package device app (no Apple credentials)
+        run: bash scripts/build_ios_ipa.sh
+      - name: Upload unsigned IPA and build details
+        uses: actions/upload-artifact@v4
+        with:
+          name: MotoGPS-unsigned-iphone
+          path: build/ipa/
+          if-no-files-found: error
+          retention-days: 14
