@@ -530,7 +530,9 @@ final class AppModel: ObservableObject {
                 guard let self, !Task.isCancelled else { return }
                 self.placeResults = []
                 self.isSearchingPlaces = false
-                self.placeSearchFailure = "地点搜索失败，请检查网络后重试"
+                let failure = error as NSError
+                let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
+                self.placeSearchFailure = "搜索失败（版本 \(build)）\n\(failure.localizedDescription)\n\(failure.domain) / \(failure.code)\n服务：\(AppConfiguration.gatewayBaseURL.absoluteString)"
             }
         }
     }
