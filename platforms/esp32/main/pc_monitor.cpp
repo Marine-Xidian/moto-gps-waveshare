@@ -51,6 +51,8 @@ void update(cJSON* root) {
   lv_label_set_text(status,buf);
   last_packet = esp_timer_get_time()/1000;
   connected = true;
+  const char ack[] = "PCMON1 OK\n";
+  usb_serial_jtag_write_bytes(ack, sizeof(ack)-1, 0);
 }
 }
 extern "C" void app_main() {
