@@ -59,7 +59,7 @@ final class AmapGatewayPlaceProvider: @unchecked Sendable {
         guard query.count >= 2 else { return [] }
 
         let endpoint = baseURL.appending(path: "v1/places")
-        guard endpoint.scheme == "https" || endpoint.host == "127.0.0.1" || endpoint.host == "localhost",
+        guard AppConfiguration.allowsGatewayURL(endpoint),
               var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)
         else {
             throw AmapGatewayError.invalidEndpoint

@@ -616,7 +616,7 @@ final class SurroundingMapStore: ObservableObject {
     private static func httpLoader(baseURL: URL) -> MapTileCache.Loader {
         { tile in
             let url = baseURL.appendingPathComponent("v1/map/tiles/\(tile.z)/\(tile.x)/\(tile.y)")
-            guard url.scheme == "https" || ["localhost", "127.0.0.1"].contains(url.host ?? "") else {
+            guard AppConfiguration.allowsGatewayURL(url) else {
                 throw SurroundingMapError.invalidResponse
             }
             var request = URLRequest(url: url)

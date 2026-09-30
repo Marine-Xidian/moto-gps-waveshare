@@ -32,7 +32,7 @@ final class AmapGatewayRouteProvider: NavigationRouteProviding, @unchecked Senda
 
     func route(for request: RouteRequest) async throws -> RouteEnvelope {
         let endpoint = baseURL.appending(path: "v1/routes")
-        guard endpoint.scheme == "https" || endpoint.host == "127.0.0.1" || endpoint.host == "localhost" else {
+        guard AppConfiguration.allowsGatewayURL(endpoint) else {
             throw AmapGatewayError.invalidEndpoint
         }
 
@@ -66,7 +66,7 @@ final class AmapGatewayRouteProvider: NavigationRouteProviding, @unchecked Senda
     /// make normal navigation unavailable during a staggered deployment.
     func routeOptions(for request: RouteRequest) async throws -> [RoutePlan] {
         let endpoint = baseURL.appending(path: "v1/route-options")
-        guard endpoint.scheme == "https" || endpoint.host == "127.0.0.1" || endpoint.host == "localhost" else {
+        guard AppConfiguration.allowsGatewayURL(endpoint) else {
             throw AmapGatewayError.invalidEndpoint
         }
 
