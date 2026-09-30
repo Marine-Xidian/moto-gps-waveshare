@@ -1,0 +1,40 @@
+name: Build Waveshare 1.75C firmware
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/ios-ipa]
+    paths: ['.github/workflows/esp32-firmware.yml']
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.5.5
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Compile exact 1.75C board firmware
+        shell: bash
+        run: |
+          . /opt/esp/idf/export.sh
+          idf.py -C platforms/esp32 set-target esp32s3
+          idf.py -C platforms/esp32 build
+          mkdir -p firmware/bootloader firmware/partition_table
+          cp platforms/esp32/build/bootloader/bootloader.bin firmware/bootloader/
+          cp platforms/esp32/build/partition_table/partition-table.bin firmware/partition_table/
+          cp platforms/esp32/build/moto_gps_esp32.bin firmware/
+          cp platforms/esp32/build/flasher_args.json platforms/esp32/build/flash_args firmware/
+          cp platforms/esp32/sdkconfig firmware/
+          cp LICENSE.md NOTICE THIRD_PARTY_NOTICES.md firmware/
+          git -c safe.directory="$GITHUB_WORKSPACE" rev-parse HEAD > firmware/SOURCE-COMMIT.txt
+          cd firmware
+          sha256sum bootloader/*.bin partition_table/*.bin *.bin > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MotoGPS-Waveshare-1.75C-firmware
+          path: firmware/
+          if-no-files-found: error
+          retention-days: 30
