@@ -25,6 +25,6 @@ shasum -a 256 build/ipa/MotoGPS-unsigned.ipa > build/ipa/SHA256SUMS.txt
   git rev-parse HEAD
   xcodebuild -version
   printf '\nUnsigned device build. Requires local signing before installation.\n'
-  printf 'Navigation gateway is not configured: initial installation/demo only.\n'
+  printf 'Personal LAN test gateway: http://192.168.31.57:8787/ (same router required).\n'
 } > build/ipa/BUILD-INFO.txt
 cp LICENSE.md NOTICE THIRD_PARTY_NOTICES.md build/ipa/

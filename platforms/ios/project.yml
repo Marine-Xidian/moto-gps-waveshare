@@ -58,7 +58,13 @@ targets:
         UIBackgroundModes:
           - location
           - bluetooth-central
-        MOTOGPSGatewayBaseURL: https://example.invalid/moto-gps/api/
+        MOTOGPSGatewayBaseURL: http://192.168.31.57:8787/
+        NSLocalNetworkUsageDescription: MOTO GPS 需要访问同一 Wi-Fi 下电脑上的导航服务，用于搜索地点和规划路线。
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSExceptionDomains:
+            "192.168.31.57":
+              NSExceptionAllowsInsecureHTTPLoads: true
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
@@ -70,7 +76,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.example.motogps
         PRODUCT_NAME: MOTO GPS
         MARKETING_VERSION: 0.3.0
-        CURRENT_PROJECT_VERSION: 5
+        CURRENT_PROJECT_VERSION: 6
         SWIFT_VERSION: 5.0
         SWIFT_STRICT_CONCURRENCY: targeted
         SWIFT_OBJC_BRIDGING_HEADER: App/MotoGPS-Bridging-Header.h
