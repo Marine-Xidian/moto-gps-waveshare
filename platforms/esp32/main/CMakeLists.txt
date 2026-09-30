@@ -1,5 +1,5 @@
 set(MOTO_REPOSITORY_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../..")
-if(PC_MONITOR)
+if(PC_MONITOR OR "$ENV{PC_MONITOR}" STREQUAL "1")
     idf_component_register(SRCS "pc_monitor.cpp" "board_port_waveshare_1_75c.cpp"
         INCLUDE_DIRS "." "${MOTO_REPOSITORY_ROOT}/shared/nav_ui/include"
         REQUIRES esp_timer esp_driver_gpio esp_driver_i2c esp_driver_usb_serial_jtag

@@ -20,6 +20,7 @@ jobs:
         shell: bash
         run: |
           . /opt/esp/idf/export.sh
+          export PC_MONITOR=1
           idf.py -C platforms/esp32 -DPC_MONITOR=ON set-target esp32s3
           idf.py -C platforms/esp32 -DPC_MONITOR=ON build
           mkdir -p firmware/bootloader firmware/partition_table
