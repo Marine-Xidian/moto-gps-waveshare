@@ -59,7 +59,8 @@ extern "C" void app_main() {
   ESP_ERROR_CHECK(board_port_init());
   board_port_lock(UINT32_MAX);
   auto* screen = lv_screen_active();
-  lv_obj_set_style_bg_color(screen,lv_color_hex(0x080C14),0);
+  lv_obj_set_style_bg_color(screen,lv_color_hex(0x000000),0);
+  lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
   lv_obj_remove_flag(screen,LV_OBJ_FLAG_SCROLLABLE);
   label(screen,"DESK / MONITOR",137,37,&lv_font_montserrat_20,0x6BE4CE);
   clock_label=label(screen,"--:--",196,67,&lv_font_montserrat_20,0x7D8CA5);
