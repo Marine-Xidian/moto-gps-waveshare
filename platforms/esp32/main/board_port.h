@@ -42,6 +42,8 @@ lv_display_t *board_port_get_display(void);
  * never appear between panel reset and the boot animation.
  */
 esp_err_t board_port_reveal_display(void);
+/** Set AMOLED brightness (0..100). Call while holding board_port_lock. */
+esp_err_t board_port_set_brightness(uint8_t percent);
 
 /**
  * Lock LVGL for calls made outside the board-owned LVGL task.

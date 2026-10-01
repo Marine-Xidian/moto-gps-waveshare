@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [codex/pc-monitor]
-    paths: ['platforms/esp32/main/pc_monitor.cpp', '.github/workflows/pc-monitor.yml', 'platforms/esp32/main/CMakeLists.txt']
+    paths: ['platforms/esp32/main/pc_monitor.cpp', 'platforms/esp32/main/board_port*', '.github/workflows/pc-monitor.yml', 'platforms/esp32/main/CMakeLists.txt']
 permissions:
   contents: read
 jobs:

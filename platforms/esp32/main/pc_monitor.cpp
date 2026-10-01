@@ -5,11 +5,16 @@
 #include "cJSON.h"
 #include "driver/usb_serial_jtag.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 namespace {
 lv_obj_t *values[4], *bars[4], *status, *clock_label;
+lv_obj_t* content;
+double pc_idle_seconds = -1;
+uint64_t last_touch = 0;
+int brightness = -1;
 uint64_t last_packet = 0;
 bool connected = false;
 lv_obj_t* label(lv_obj_t* parent, const char* text, int x, int y,
@@ -27,6 +32,7 @@ double number(cJSON* root, const char* key) {
 }
 void update(cJSON* root) {
   if (number(root, "v") != 1) return;
+  pc_idle_seconds = number(root, "idle_s");
   const char* keys[] = {"cpu", "gpu", "quota5", "quota7"};
   char buf[80];
   for (int i = 0; i < 4; ++i) {
@@ -51,8 +57,32 @@ void update(cJSON* root) {
   lv_label_set_text(status,buf);
   last_packet = esp_timer_get_time()/1000;
   connected = true;
-  const char ack[] = "PCMON1 OK\n";
-  usb_serial_jtag_write_bytes(ack, sizeof(ack)-1, 0);
+  char ack[64];
+  int len=snprintf(ack,sizeof(ack),"PCMON1 OK brightness=%d\n",brightness);
+  usb_serial_jtag_write_bytes(ack,len,0);
+}
+void protection_tick(uint64_t now) {
+  board_port_lock(UINT32_MAX);
+  for(auto* input=lv_indev_get_next(nullptr); input; input=lv_indev_get_next(input)) {
+    if(lv_indev_get_type(input)==LV_INDEV_TYPE_POINTER && lv_indev_get_state(input)==LV_INDEV_STATE_PRESSED)
+      last_touch=now;
+  }
+  // Minute-by-minute orbit distributes fixed glyphs across neighbouring pixels.
+  static const int offsets[9][2]={{0,0},{4,0},{4,4},{0,4},{-4,4},{-4,0},{-4,-4},{0,-4},{4,-4}};
+  const unsigned index=(now/60000)%9;
+  lv_obj_set_pos(content,offsets[index][0],offsets[index][1]);
+  int target=55;
+  if(pc_idle_seconds>=120) target=18;
+  if(pc_idle_seconds>=600) target=0;
+  if(now-last_packet>30000) target=0;
+  if(last_touch && now-last_touch<60000) target=55;
+  if(target!=brightness) {
+    if(board_port_set_brightness(target)==ESP_OK) {
+      brightness=target;
+      ESP_LOGI("pc_protection","brightness=%d",target);
+    }
+  }
+  board_port_unlock();
 }
 }
 extern "C" void app_main() {
@@ -62,6 +92,11 @@ extern "C" void app_main() {
   lv_obj_set_style_bg_color(screen,lv_color_hex(0x000000),0);
   lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
   lv_obj_remove_flag(screen,LV_OBJ_FLAG_SCROLLABLE);
+  content=lv_obj_create(screen);
+  lv_obj_remove_style_all(content);
+  lv_obj_set_size(content,466,466);
+  lv_obj_remove_flag(content,LV_OBJ_FLAG_SCROLLABLE);
+  screen=content;
   label(screen,"DESK / MONITOR",137,37,&lv_font_montserrat_20,0x6BE4CE);
   clock_label=label(screen,"--:--",196,67,&lv_font_montserrat_20,0x7D8CA5);
   const char* names[]={"CPU", "GPU", "CODEX / 5H", "CODEX / WEEK"};
@@ -80,6 +115,10 @@ extern "C" void app_main() {
   lv_obj_set_width(status,466); lv_obj_set_style_text_align(status,LV_TEXT_ALIGN_CENTER,0);
   board_port_unlock();
   ESP_ERROR_CHECK(board_port_reveal_display());
+  board_port_lock(UINT32_MAX);
+  ESP_ERROR_CHECK(board_port_set_brightness(55));
+  brightness=55;
+  board_port_unlock();
   usb_serial_jtag_driver_config_t cfg{}; cfg.rx_buffer_size=2048; cfg.tx_buffer_size=512;
   ESP_ERROR_CHECK(usb_serial_jtag_driver_install(&cfg));
   char line[768]; size_t used=0; bool overflow=false;
@@ -103,5 +142,6 @@ extern "C" void app_main() {
       for(int i=0;i<4;++i) {lv_label_set_text(values[i],"--");lv_bar_set_value(bars[i],0,LV_ANIM_OFF);}
       board_port_unlock(); connected=false;
     }
+    protection_tick(esp_timer_get_time()/1000);
   }
 }

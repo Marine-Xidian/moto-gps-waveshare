@@ -955,6 +955,12 @@ extern "C" esp_err_t board_port_reveal_display(void) {
   return ESP_OK;
 }
 
+extern "C" esp_err_t board_port_set_brightness(uint8_t percent) {
+  if (panel == nullptr) return ESP_ERR_INVALID_STATE;
+  if (percent > 100) return ESP_ERR_INVALID_ARG;
+  return esp_lcd_panel_co5300_set_brightness(panel, percent);
+}
+
 extern "C" bool board_port_lock(uint32_t timeout_ms) {
   if (display == nullptr) {
     return false;
